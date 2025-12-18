@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+        .order-item { display: flex; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+        .order-item img { width: 60px; height: 60px; object-fit: cover; margin-right: 15px; border-radius: 4px; }
+        .totals { margin-top: 20px; background: white; padding: 15px; border-radius: 8px; }
+        .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
+        .total-row.grand-total { font-weight: bold; font-size: 1.2em; border-top: 2px solid #4F46E5; padding-top: 10px; margin-top: 10px; }
+        .address { background: white; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 0.9em; }
+        .btn { display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Order Confirmed!</h1>
+        <p>Order #<span th:text="${orderNumber}">ABC123</span></p>
+    </div>
+
+    <div class="content">
+        <p>Hi <span th:text="${customerName}">Customer</span>,</p>
+        <p>Thank you for your order! We're getting it ready for you.</p>
+
+        <h3>Order Items</h3>
+        <div th:each="item : ${items}" class="order-item">
+            <div>
+                <strong th:text="${item.productName}">Product Name</strong><br>
+                <span th:if="${item.color}">Color: <span th:text="${item.color}">Black</span></span>
+                <span th:if="${item.size}"> | Size: <span th:text="${item.size}">M</span></span><br>
+                <span>Qty: <span th:text="${item.quantity}">1</span> x $<span th:text="${item.price}">99.99</span></span>
+            </div>
+        </div>
+
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span>$<span th:text="${subtotal}">0.00</span></span>
+            </div>
+            <div class="total-row">
+                <span>Shipping</span>
+                <span>$<span th:text="${shipping}">0.00</span></span>
+            </div>
+            <div th:if="${discount > 0}" class="total-row" style="color: #059669;">
+                <span>Discount</span>
+                <span>-$<span th:text="${discount}">0.00</span></span>
+            </div>
+            <div class="total-row grand-total">
+                <span>Total</span>
+                <span>$<span th:text="${total}">0.00</span></span>
+            </div>
+        </div>
+
+        <div class="address">
+            <h4>Shipping Address</h4>
+            <p th:text="${shippingAddress.fullName}">John Doe</p>
+            <p th:text="${shippingAddress.address}">123 Main St</p>
+            <p><span th:text="${shippingAddress.city}">City</span>, <span th:text="${shippingAddress.region}">Region</span></p>
+            <p th:text="${shippingAddress.phone}">+1234567890</p>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="#" class="btn">Track Order</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Questions? Contact us at support@randomstuff.shop</p>
+        <p>&copy; 2024 RandomStuff. All rights reserved.</p>
+    </div>
+</body>
+</html>

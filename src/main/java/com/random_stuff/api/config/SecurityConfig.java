@@ -1,5 +1,5 @@
 package com.random_stuff.api.config;
- 
+
 import com.random_stuff.api.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -19,16 +19,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
- 
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
- 
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
- 
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -38,21 +38,44 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
- 
+
+                // WebSocket endpoints
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/ws-native/**").permitAll()
+
+                // Stripe webhook (needs to be public)
+                .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
+
                 // Public read access
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/coupons/validate").permitAll()
- 
+
+                // Search endpoints (public)
+                .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/search").permitAll()
+
+                // Recommendations (public, but personalized when authenticated)
+                .requestMatchers(HttpMethod.GET, "/api/recommendations/popular").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/recommendations/trending").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/recommendations/similar/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/recommendations/frequently-bought-together/**").permitAll()
+
+                // Static file serving for local uploads
+                .requestMatchers("/uploads/**").permitAll()
+
                 // Authenticated endpoints
                 .requestMatchers("/api/orders/**").authenticated()
                 .requestMatchers("/api/users/**").authenticated()
+                .requestMatchers("/api/payments/**").authenticated()
+                .requestMatchers("/api/recommendations/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/reviews/**").authenticated()
- 
+                .requestMatchers("/api/upload/**").authenticated()
+
                 // Admin endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
- 
+
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -60,10 +83,10 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             // For H2 console
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
- 
+
         return http.build();
     }
- 
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -71,12 +94,12 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
- 
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
- 
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
