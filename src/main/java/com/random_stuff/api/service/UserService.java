@@ -3,6 +3,7 @@ package com.random_stuff.api.service;
 import com.random_stuff.api.dto.UserDto;
 import com.random_stuff.api.entity.Product;
 import com.random_stuff.api.entity.User;
+import com.random_stuff.api.exception.ResourceNotFoundException;
 import com.random_stuff.api.repository.ProductRepository;
 import com.random_stuff.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +30,12 @@ public class UserService implements UserDetailsService {
  
     public User findById(String id) {
         return userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
  
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
     }
  
     @Transactional
@@ -59,7 +60,7 @@ public class UserService implements UserDetailsService {
     public void addToWishlist(String userId, String productId) {
         User user = findById(userId);
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
  
         if (!user.getWishlist().contains(product)) {
             user.getWishlist().add(product);

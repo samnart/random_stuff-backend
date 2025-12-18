@@ -52,6 +52,15 @@ public class Product {
     private Category category;
  
     private String badge;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal originalPrice;
+
+    @Column
+    private String image;
+
+    @Builder.Default
+    private boolean featured = false;
  
     @Builder.Default
     private double rating = 0.0;

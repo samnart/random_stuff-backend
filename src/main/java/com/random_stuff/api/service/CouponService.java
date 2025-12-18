@@ -1,6 +1,8 @@
 package com.random_stuff.api.service;
  
 import com.random_stuff.api.entity.Coupon;
+import com.random_stuff.api.exception.BadRequestException;
+import com.random_stuff.api.exception.ResourceNotFoundException;
 import com.random_stuff.api.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -54,14 +56,14 @@ public class CouponService {
     @Transactional
     public BigDecimal applyCoupon(String code, BigDecimal orderTotal) {
         Coupon coupon = couponRepository.findByCodeIgnoreCase(code)
-            .orElseThrow(() -> new RuntimeException("Invalid coupon code"));
+            .orElseThrow(() -> new ResourceNotFoundException("Coupon", "code", code));
  
         if (!coupon.isValid()) {
-            throw new RuntimeException("Coupon has expired");
+            throw new BadRequestException("Coupon has expired or is no longer available");
         }
  
         if (coupon.getMinOrder() != null && orderTotal.compareTo(coupon.getMinOrder()) < 0) {
-            throw new RuntimeException("Minimum order requirement not met");
+            throw new BadRequestException("Minimum order of " + coupon.getMinOrder() + " required");
         }
  
         BigDecimal discount = coupon.calculateDiscount(orderTotal);

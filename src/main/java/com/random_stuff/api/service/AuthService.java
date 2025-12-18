@@ -4,6 +4,8 @@ import com.random_stuff.api.dto.AuthRequest;
 import com.random_stuff.api.dto.AuthResponse;
 import com.random_stuff.api.dto.UserDto;
 import com.random_stuff.api.entity.User;
+import com.random_stuff.api.exception.BadRequestException;
+import com.random_stuff.api.exception.ResourceNotFoundException;
 import com.random_stuff.api.repository.UserRepository;
 import com.random_stuff.api.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,7 @@ public class AuthService {
     @Transactional
     public AuthResponse register(AuthRequest.Register request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new BadRequestException("Email already registered");
         }
  
         User user = User.builder()
@@ -50,7 +52,7 @@ public class AuthService {
         );
  
         User user = userRepository.findByEmail(request.getEmail().toLowerCase())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
  
         String token = jwtUtil.generateToken(user);
  
@@ -59,7 +61,7 @@ public class AuthService {
  
     public void forgotPassword(String email) {
         User user = userRepository.findByEmail(email.toLowerCase())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
  
         // In a real app, generate a reset token, save it, and send email
         // For now, just log it

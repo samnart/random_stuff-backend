@@ -2,12 +2,12 @@ package com.random_stuff.api.service;
  
 import com.random_stuff.api.dto.ProductDto;
 import com.random_stuff.api.entity.Product;
+import com.random_stuff.api.exception.ResourceNotFoundException;
 import com.random_stuff.api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
  
@@ -36,7 +36,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductDto getProduct(String id) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
         return ProductDto.fromEntity(product);
     }
  
@@ -84,7 +84,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<ProductDto> getSimilarProducts(String productId) {
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
  
         if (product.getCategory() == null) {
             return List.of();
@@ -104,6 +104,6 @@ public class ProductService {
  
     public Product findById(String id) {
         return productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
     }
 }

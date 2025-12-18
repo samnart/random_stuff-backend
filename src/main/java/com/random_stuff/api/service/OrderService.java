@@ -3,8 +3,12 @@ package com.random_stuff.api.service;
 import com.random_stuff.api.dto.CreateOrderRequest;
 import com.random_stuff.api.dto.OrderDto;
 import com.random_stuff.api.entity.*;
+import com.random_stuff.api.exception.BadRequestException;
+import com.random_stuff.api.exception.ResourceNotFoundException;
+import com.random_stuff.api.exception.UnauthorizedException;
 import com.random_stuff.api.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
  
@@ -43,7 +47,7 @@ public class OrderService {
             Product product = productService.findById(itemDto.getProductId());
  
             if (product.getStock() < itemDto.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+                throw new BadRequestException("Insufficient stock for product: " + product.getName());
             }
  
             OrderItem item = OrderItem.builder()
@@ -95,10 +99,10 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderDto getOrder(String orderId, String userId) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
  
         if (!order.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Access denied");
+            throw new UnauthorizedException("Access denied to this order");
         }
  
         return OrderDto.fromEntity(order);
@@ -107,7 +111,7 @@ public class OrderService {
     @Transactional
     public OrderDto updateOrderStatus(String orderId, Order.OrderStatus status) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
  
         order.setStatus(status);
  

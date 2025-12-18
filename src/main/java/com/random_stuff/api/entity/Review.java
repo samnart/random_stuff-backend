@@ -24,10 +24,12 @@ public class Review {
     private Product product;
  
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private User user;
+
+    private String reviewerName;
  
     @Column(nullable = false)
     private int rating;

@@ -5,6 +5,9 @@ import com.random_stuff.api.dto.ReviewDto;
 import com.random_stuff.api.entity.Product;
 import com.random_stuff.api.entity.Review;
 import com.random_stuff.api.entity.User;
+import com.random_stuff.api.exception.BadRequestException;
+import com.random_stuff.api.exception.ResourceNotFoundException;
+import com.random_stuff.api.exception.UnauthorizedException;
 import com.random_stuff.api.repository.ProductRepository;
 import com.random_stuff.api.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +43,12 @@ public class ReviewService {
     public ReviewDto createReview(String userId, CreateReviewRequest request) {
         // Check if user already reviewed this product
         if (reviewRepository.existsByProductIdAndUserId(request.getProductId(), userId)) {
-            throw new RuntimeException("You have already reviewed this product");
+            throw new BadRequestException("You have already reviewed this product");
         }
  
         User user = userService.findById(userId);
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", request.getProductId()));
  
         Review review = Review.builder()
             .user(user)
@@ -66,7 +69,7 @@ public class ReviewService {
     @Transactional
     public void markHelpful(String reviewId) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new RuntimeException("Review not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
  
         review.incrementHelpful();
         reviewRepository.save(review);
@@ -75,10 +78,10 @@ public class ReviewService {
     @Transactional
     public void deleteReview(String reviewId, String userId) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new RuntimeException("Review not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
  
         if (!review.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Access denied");
+            throw new UnauthorizedException("Access denied to this review");
         }
  
         String productId = review.getProduct().getId();
@@ -90,7 +93,7 @@ public class ReviewService {
  
     private void updateProductRating(String productId) {
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
  
         Double avgRating = reviewRepository.findAverageRatingByProductId(productId);
         Long count = reviewRepository.countByProductId(productId);

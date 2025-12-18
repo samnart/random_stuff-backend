@@ -18,7 +18,7 @@ public class ProductSpecification {
     @Column(nullable = false)
     private String label;
  
-    @Column(nullable = false)
+    @Column(name = "spec_value", nullable = false)
     private String value;
  
     @ManyToOne(fetch = FetchType.LAZY)
